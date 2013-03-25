@@ -30,19 +30,19 @@
 
 ;; プロセスを立ち上げてブランチ名を取得する
 (defun modeline-git-branch-run-process (buffer force)
-  (when (and (null modeline-git-branch-process)
-             (or force (eq buffer (current-buffer))))
+  (when (or force (eq buffer (current-buffer)))
     (with-current-buffer buffer
-      (let ((process-connection-type nil))
-        (setq modeline-git-branch-process
-              (start-process "modeline-git-branch" buffer
-                             "git" "symbolic-ref" "HEAD"))
-        (set-process-filter modeline-git-branch-process
-                            'modeline-git-branch-update-modeline)
-        (set-process-sentinel modeline-git-branch-process
-                              'modeline-git-branch-clear-process)
-        (set-process-query-on-exit-flag modeline-git-branch-process
-                                        nil)))))
+      (when (null modeline-git-branch-process)
+        (let ((process-connection-type nil))
+          (setq modeline-git-branch-process
+                (start-process "modeline-git-branch" buffer
+                               "git" "symbolic-ref" "HEAD"))
+          (set-process-filter modeline-git-branch-process
+                              'modeline-git-branch-update-modeline)
+          (set-process-sentinel modeline-git-branch-process
+                                'modeline-git-branch-clear-process)
+          (set-process-query-on-exit-flag modeline-git-branch-process
+                                          nil))))))
 
 ;; プロセスからの出力を整形してモードラインを更新する
 (defun modeline-git-branch-update-modeline (process output)
