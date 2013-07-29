@@ -30,9 +30,10 @@
 
 ;; プロセスを立ち上げてブランチ名を取得する
 (defun modeline-git-branch-run-process (buffer force)
-  (when (or force (eq buffer (current-buffer)))
+  (when (and (or force (eq buffer (current-buffer)))
+             (buffer-live-p buffer))
     (with-current-buffer buffer
-      (when (null modeline-git-branch-process)
+      (unless modeline-git-branch-process
         (let ((process-connection-type nil))
           (setq modeline-git-branch-process
                 (start-process "modeline-git-branch" buffer
@@ -89,7 +90,7 @@
 
 (defun modeline-git-branch-enable ()
   (setcar (or (member '(vc-mode vc-mode) mode-line-format)
-              '(nil))
+              (list nil))
           'modeline-git-branch-string)
   (modeline-git-branch-update-current)
   (add-hook 'after-change-major-mode-hook
@@ -103,7 +104,7 @@
 
 (defun modeline-git-branch-disable ()
   (setcar (or (memq 'modeline-git-branch-string mode-line-format)
-              '(nil))
+              (list nil))
           '(vc-mode vc-mode))
   (remove-hook 'after-change-major-mode-hook
                'modeline-git-branch-update-current)
