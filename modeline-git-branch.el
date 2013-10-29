@@ -30,8 +30,8 @@
 
 ;; プロセスを立ち上げてブランチ名を取得する
 (defun modeline-git-branch-run-process (buffer force)
-  (when (and (or force (eq buffer (current-buffer)))
-             (buffer-live-p buffer))
+  (when (or (and force (buffer-live-p buffer))
+            (eq buffer (current-buffer)))
     (with-current-buffer buffer
       (unless modeline-git-branch-process
         (let ((process-connection-type nil))
