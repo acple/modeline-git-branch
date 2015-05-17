@@ -73,17 +73,20 @@
   (unless (minibufferp (current-buffer))
     (modeline-git-branch-schedule-update (current-buffer) t)))
 
-;; hook#2 select-window-functions
-(defun modeline-git-branch-update-when-select-window
-  (before-win after-win)
-  (unless (minibufferp (window-buffer after-win))
-    (modeline-git-branch-schedule-update (window-buffer after-win))))
+(if (eq system-type 'windows-nt)
+    (progn
+      ;; hook#2 select-window-functions for windows
+      (defun modeline-git-branch-update-when-select-window
+          (before-win after-win)
+        (unless (minibufferp (window-buffer after-win))
+          (modeline-git-branch-schedule-update (window-buffer after-win))))
 
-;; hook#3 set-selected-window-buffer-functions
-(defun modeline-git-branch-update-when-set-window-buffer
-  (before-buf win after-buf)
-  (unless (minibufferp after-buf)
-    (modeline-git-branch-schedule-update after-buf)))
+      ;; hook#3 set-selected-window-buffer-function for windows
+      (defun modeline-git-branch-update-when-set-window-buffer
+          (before-buf win after-buf)
+        (unless (minibufferp after-buf)
+          (modeline-git-branch-schedule-update after-buf))))
+  )
 
 
 ;; ===マイナーモード定義========================================
@@ -97,10 +100,14 @@
             'modeline-git-branch-update-current)
   (add-hook 'after-save-hook
             'modeline-git-branch-update-current)
-  (add-hook 'select-window-functions
-            'modeline-git-branch-update-when-select-window)
-  (add-hook 'set-selected-window-buffer-functions
-            'modeline-git-branch-update-when-set-window-buffer))
+  (if (eq system-type 'windows-nt)
+      (progn (add-hook 'select-window-functions
+                       'modeline-git-branch-update-when-select-window)
+             (add-hook 'set-selected-window-buffer-functions
+                       'modeline-git-branch-update-when-set-window-buffer))
+    ;; for non windows system
+    (add-hook 'buffer-list-update-hook 'modeline-git-branch-update-current)
+    ))
 
 (defun modeline-git-branch-disable ()
   (setcar (or (memq 'modeline-git-branch-string mode-line-format)
@@ -110,10 +117,14 @@
                'modeline-git-branch-update-current)
   (remove-hook 'after-save-hook
                'modeline-git-branch-update-current)
-  (remove-hook 'select-window-functions
-               'modeline-git-branch-update-when-select-window)
-  (remove-hook 'set-selected-window-buffer-functions
-               'modeline-git-branch-update-when-set-window-buffer))
+  (if (eq system-type 'windows-nt)
+      (progn (remove-hook 'select-window-functions
+                          'modeline-git-branch-update-when-select-window)
+             (remove-hook 'set-selected-window-buffer-functions
+                          'modeline-git-branch-update-when-set-window-buffer))
+    ;; for non windows system
+    (remove-hook 'buffer-list-update-hook 'modeline-git-branch-update-current)
+    ))
 
 (define-minor-mode modeline-git-branch-mode
   "[git-branch]"
