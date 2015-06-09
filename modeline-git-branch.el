@@ -16,6 +16,10 @@
 ;; non-nilのときは新しいプロセスを実行しない
 (defvar modeline-git-branch-process nil)
 
+(defvar modeline-git-branch-wait-time 0.1
+  "idle状態になってからプロセス実行するまでの待機時間
+この値を0にするとcomint等で表示が崩れることがあるので注意")
+
 ;; make local-variable
 (make-variable-buffer-local 'modeline-git-branch-string)
 (make-variable-buffer-local 'modeline-git-branch-process)
@@ -26,7 +30,7 @@
 ;; プロセスの実行を予約する
 (defun modeline-git-branch-schedule-update (buffer &optional force)
   (run-with-idle-timer
-   0.0 nil #'modeline-git-branch-run-process buffer force))
+   modeline-git-branch-wait-time nil #'modeline-git-branch-run-process buffer force))
 
 ;; プロセスを立ち上げてブランチ名を取得する
 (defun modeline-git-branch-run-process (buffer force)
